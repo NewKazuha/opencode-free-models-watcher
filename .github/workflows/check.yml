@@ -1,0 +1,39 @@
+name: Check free models
+
+on:
+  schedule:
+    # كل 4 ساعات (بتوقيت UTC — مصر UTC+3، يعني 1 ص، 5 ص، 9 ص، 1 م... بالتوقيت المحلي)
+    - cron: "0 */4 * * *"
+  workflow_dispatch: # تشغيل يدوي من Actions tab
+
+# نسمح بالدفع للريبو (تحديث known_free_models.json)
+permissions:
+  contents: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run watcher
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python watch.py
+
+      - name: Commit state changes
+        run: |
+          if git diff --quiet known_free_models.json; then
+            echo "لا تغييرات"
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add known_free_models.json
+            git commit -m "chore: update known free models [skip ci]"
+            git push
+          fi

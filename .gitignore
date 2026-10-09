@@ -1,0 +1,13 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# --- Watcher local state ---
+watcher.log
+
+# --- Editors / OS ---
+.DS_Store
+.idea/
+.vscode/
